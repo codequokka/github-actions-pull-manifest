@@ -1,0 +1,25 @@
+name: Pull request
+
+on:
+  repository_dispatch:
+    types: [update-manifest]
+
+jobs:
+  pull-request:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone this repository
+        uses: actions/checkout@v2
+
+      - name: Change app version
+        run: sed -i -e 's/^\(appVersion:\) "\(.*\)"$/\1 "${{ github.event.client_payload.tag }}"/' Chart.yaml
+
+      - name: Create Pull Request
+        id: cpr
+        uses: peter-evans/create-pull-request@v3
+        with:
+          commit-message: "Relase app version: ${{ github.event.client_payload.tag }}"
+          title: "Relase app version: ${{ github.event.client_payload.tag }}"
+          base: main
+          branch: ${{ github.event.client_payload.tag }}
+          delete-branch: true
